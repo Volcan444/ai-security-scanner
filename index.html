@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI File & Link Security Scanner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-8">
+  <div class="max-w-2xl w-full bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700">
+    <h1 class="text-3xl font-bold text-cyan-400 mb-2">🛡️ AI Threat Scanner</h1>
+    <p class="text-slate-400 mb-6">Scan suspicious links and files using VirusTotal + Gemini AI</p>
+
+    <!-- URL Scanner -->
+    <div class="mb-8">
+      <label class="block text-sm font-medium mb-2">Scan a Website Link (URL)</label>
+      <div class="flex gap-2">
+        <input id="urlInput" type="url" placeholder="https://example.com" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:outline-none focus:border-cyan-400">
+        <button onclick="scanUrl()" class="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold px-6 py-3 rounded-lg">Scan Link</button>
+      </div>
+    </div>
+
+    <!-- File Scanner -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium mb-2">Scan a File (Checks SHA-256 Fingerprint & Malware DB)</label>
+      <div class="flex gap-2">
+        <input id="fileInput" type="file" class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-sm">
+        <button onclick="scanFile()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-lg">Scan File</button>
+      </div>
+    </div>
+
+    <!-- Results Box -->
+    <div id="resultBox" class="hidden mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700">
+      <h2 class="text-xl font-semibold text-cyan-300 mb-3">Scan Report</h2>
+      <pre id="statsOutput" class="text-xs bg-slate-950 p-3 rounded text-slate-300 mb-4 overflow-x-auto"></pre>
+      <h3 class="text-md font-semibold text-emerald-400 mb-1">🤖 AI Security Analysis:</h3>
+      <p id="aiOutput" class="text-slate-200 whitespace-pre-line text-sm leading-relaxed"></p>
+    </div>
+  </div>
+
+  <script>
+    async function scanUrl() {
+      const url = document.getElementById('urlInput').value;
+      if (!url) return alert('Please enter a URL');
+      showLoading();
+      const formData = new FormData();
+      formData.append('url', url);
+      const res = await fetch('/scan-url', { method: 'POST', body: formData });
+      displayResult(await res.json());
+    }
+
+    async function scanFile() {
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files[0]) return alert('Please select a file');
+      showLoading();
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      const res = await fetch('/scan-file', { method: 'POST', body: formData });
+      displayResult(await res.json());
+    }
+
+    function showLoading() {
+      document.getElementById('resultBox').classList.remove('hidden');
+      document.getElementById('statsOutput').textContent = 'Scanning with VirusTotal engines...';
+      document.getElementById('aiOutput').textContent = 'Generating AI safety report...';
+    }
+
+    function displayResult(data) {
+      document.getElementById('statsOutput').textContent = JSON.stringify(data.stats || data, null, 2);
+      document.getElementById('aiOutput').textContent = data.ai_explanation || data.error;
+    }
+  </script>
+</body>
+</html>
